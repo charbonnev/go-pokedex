@@ -17,10 +17,7 @@ func getCommands() map[string]cliCommand {
 		"exit": {
 			name:        "exit",
 			description: "Exit the program",
-			callback: func() error {
-				os.Exit(0)
-				return nil
-			},
+			callback:    ExitCommand,
 		},
 		"help": {
 			name:        "help",
