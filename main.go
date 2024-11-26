@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -13,6 +12,7 @@ type cliCommand struct {
 }
 
 func getCommands() map[string]cliCommand {
+	mapForward, mapBack := MapCommands()
 	return map[string]cliCommand{
 		"exit": {
 			name:        "exit",
@@ -22,28 +22,17 @@ func getCommands() map[string]cliCommand {
 		"help": {
 			name:        "help",
 			description: "Get a list of commands",
-			callback: func() error {
-				for _, command := range getCommands() {
-					fmt.Printf("%s: %s\n", command.name, command.description)
-				}
-				return nil
-			},
+			callback:    HelpCommand,
 		},
 		"map": {
 			name:        "map",
-			description: "displays the names of 20 location areas in the Pokemon world. Call again for the next 20 locations",
-			callback: func() error {
-				os.Exit(0)
-				return nil
-			},
+			description: "Displays 20 location areas in the Pokemon world. Call again for the next 20.",
+			callback:    mapForward,
 		},
 		"mapb": {
 			name:        "mapb",
-			description: "pairs with map, displays the names of the 20 previous location areas in the Pokemon world",
-			callback: func() error {
-				os.Exit(0)
-				return nil
-			},
+			description: "Pairs with map, displays the 20 previous location areas.",
+			callback:    mapBack,
 		},
 	}
 }
