@@ -1,7 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 )
 
@@ -31,10 +34,39 @@ func MapCommands() (func() error, func() error) {
 	limitURL := baseURL + "location-area/?limit=" + string(limit)
 	offset := -limit
 
+	getPokeLocations := func(url string) ([]string, error) {
+		res, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+		if res.StatusCode > 299 {
+			return nil,
+				fmt.Errorf("response failed with status code: %d and\nbody: %s",
+					res.StatusCode, body)
+		}
+
+		var pokeLocations []string
+		err = json.Unmarshal(body, &pokeLocations)
+		if err != nil {
+			return nil, err
+		}
+
+		return pokeLocations, nil
+	}
+
 	mapf := func() error {
 		offset += limit
 		fullURL := limitURL + fmt.Sprintf("&offset=%d", offset)
-		fmt.Println(fullURL)
+		pokeLocations, err := getPokeLocations(fullURL)
+		if err != nil {
+			return err
+		}
+		fmt.Println(pokeLocations)
 		return nil
 	}
 
