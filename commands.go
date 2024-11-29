@@ -8,6 +8,16 @@ import (
 	"os"
 )
 
+type PokeLocationBody struct {
+	Count    int     `json:"count"`
+	Next     string  `json:"next"`
+	Previous *string `json:"previous"`
+	Results  []struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"results"`
+}
+
 var baseURL = "https://pokeapi.co/api/v2/"
 
 func ExitCommand() error {
@@ -31,7 +41,7 @@ func max(a, b int) int {
 
 func MapCommands() (func() error, func() error) {
 	const limit = 20
-	limitURL := baseURL + "location-area/?limit=" + string(limit)
+	limitURL := baseURL + "location-area/?limit=" + fmt.Sprintf("%d", limit)
 	offset := -limit
 
 	getPokeLocations := func(url string) ([]string, error) {
@@ -51,12 +61,22 @@ func MapCommands() (func() error, func() error) {
 		}
 
 		var pokeLocations []string
-		err = json.Unmarshal(body, &pokeLocations)
+		var PokeLocObj PokeLocationBody
+		err = json.Unmarshal(body, &PokeLocObj)
 		if err != nil {
 			return nil, err
 		}
+		for _, location := range PokeLocObj.Results {
+			pokeLocations = append(pokeLocations, location.Name)
+		}
 
 		return pokeLocations, nil
+	}
+
+	printStringList := func(list []string) {
+		for _, item := range list {
+			fmt.Println(item)
+		}
 	}
 
 	mapf := func() error {
@@ -66,7 +86,7 @@ func MapCommands() (func() error, func() error) {
 		if err != nil {
 			return err
 		}
-		fmt.Println(pokeLocations)
+		printStringList(pokeLocations)
 		return nil
 	}
 
@@ -77,7 +97,11 @@ func MapCommands() (func() error, func() error) {
 		}
 		offset = max(0, offset-limit)
 		fullURL := limitURL + fmt.Sprintf("&offset=%d", offset)
-		fmt.Println(fullURL)
+		pokeLocations, err := getPokeLocations(fullURL)
+		if err != nil {
+			return err
+		}
+		printStringList(pokeLocations)
 		return nil
 	}
 	return mapf, mapb
