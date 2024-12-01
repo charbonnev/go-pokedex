@@ -8,11 +8,11 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*Config) error
 }
 
-func getCommands() map[string]cliCommand {
-	mapForward, mapBack := MapCommands()
+func getCommands(cfg *Config) map[string]cliCommand {
+	mapForward, mapBack := MapCommands(cfg)
 	return map[string]cliCommand{
 		"exit": {
 			name:        "exit",
@@ -38,14 +38,15 @@ func getCommands() map[string]cliCommand {
 }
 
 func main() {
-	commands := getCommands()
+	config := Config{}
+	commands := getCommands(&config)
 	fmt.Printf("Pokedex > ")
 	for {
 		var input string
 		fmt.Scanln(&input)
 		cleanInput := strings.ToLower(input)
 		if command, ok := commands[cleanInput]; ok {
-			err := command.callback()
+			err := command.callback(&config)
 			if err != nil {
 				fmt.Println(err)
 			}
